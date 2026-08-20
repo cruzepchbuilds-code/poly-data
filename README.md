@@ -100,13 +100,30 @@ five times. De-duplicated, the finding went from "+7.0" to "−0.3". It was not 
 finding at all. This dataset is already de-duplicated on
 `(slug, side, secs_left)`.
 
-**4. Early exits create survivorship bias.** If a strategy sometimes sells
-before settlement, scoring only its *settled* positions silently deletes every
-trade it bailed out of. In my own book this reversed the entire ranking: one
-approach looked like the best thing I had (+$1,940 measured on settles alone)
-and was +$541 once exits were counted; another looked like the worst (−$569)
-and was actually **+$478**. Four of the five apparently-worst approaches were
-around breakeven or better. If your P&L doesn't reconcile to cash, it's wrong.
+**4. Early exits create survivorship bias — and the fix has its own trap.**
+If a strategy sometimes closes a position before settlement, scoring only its
+*settled* positions silently deletes every trade it bailed out of. One approach
+in my book looked like the best thing I had, +$1,940 measured on settles alone;
+counting its exits, it made **+$541**. Same trades, a third of the headline.
+
+Then the second layer. When I counted exits across the rest of the book, four
+approaches flipped from clearly-losing to apparently-profitable — one of them
+from −$569 to +$478. That felt like a discovery. It was a bug. Those approaches
+closed positions by **merging** (combining YES + NO shares back into $1), and
+the simulator credited $1.00 per share even where only *one* side was held. On
+one of them, **383 of 383 merges were one-sided** — booking a dollar for a 4¢
+ticket that was going to expire worthless. Restricting every merge to the
+matched pair actually owned, that −$569 becomes **−$605**, and all four are
+firmly negative again. The settle-only view had been closer to the truth all
+along.
+
+So the lesson isn't "count your exits." It is that **an exit credit is a claim
+about a counterparty**, and every such claim needs a mechanism behind it: a
+sell needs depth on the other side of the book, a merge needs both legs in
+inventory. My sells checked out — 98% sat inside the touch depth recorded at
+entry, and proceeds were credited at the traded price. My merges did not. If
+your P&L doesn't reconcile against actual cash, it is wrong, and it will be
+wrong in the flattering direction.
 
 **5. Backtesting this is impossible with public data.** Polymarket's
 `prices-history` endpoint returns **one point per 10 minutes regardless of
