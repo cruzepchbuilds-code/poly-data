@@ -117,13 +117,25 @@ matched pair actually owned, that −$569 becomes **−$605**, and all four are
 firmly negative again. The settle-only view had been closer to the truth all
 along.
 
-So the lesson isn't "count your exits." It is that **an exit credit is a claim
-about a counterparty**, and every such claim needs a mechanism behind it: a
-sell needs depth on the other side of the book, a merge needs both legs in
-inventory. My sells checked out — 98% sat inside the touch depth recorded at
-entry, and proceeds were credited at the traded price. My merges did not. If
-your P&L doesn't reconcile against actual cash, it is wrong, and it will be
-wrong in the flattering direction.
+Then a third layer, on the one approach that had survived both. Its +$541
+was not real either. It works by closing a position and immediately taking
+the **opposite** side of the same market, and the simulator priced that
+re-entry inconsistently with the exit: the two legs summed to a median of
+**0.84** instead of 1.00, and below 0.95 on 71% of them. A sell at 0.24 paired
+with a buy at 0.49 on the same market at the same instant is 27 cents of money
+that does not exist. Its re-entry rows carry no recorded bid at all — they were
+never priced against a real book. Strip that out and the +37-point "edge"
+(buying the winning side at a median 0.59 and winning 96% of the time — which
+no real market would ever offer) disappears entirely.
+
+So the lesson isn't "count your exits." It is that **every price in a
+simulator is a claim about a counterparty**, and each one needs a mechanism
+behind it: a sell needs depth on the far side of the book, a merge needs both
+legs in inventory, and a two-legged trade must price both legs against the
+*same* book at the *same* instant. A cheap and brutal test for the last one:
+**add the two legs together.** If they don't sum to about 1.00, your simulator
+is printing money. If your P&L doesn't reconcile against actual cash, it is
+wrong — and it will be wrong in the flattering direction.
 
 **5. Backtesting this is impossible with public data.** Polymarket's
 `prices-history` endpoint returns **one point per 10 minutes regardless of
